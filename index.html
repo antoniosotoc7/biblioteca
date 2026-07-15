@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biblioteca compartida</title>
+  <style>
+    :root{--bg:#f6f1e8;--card:#fffdf8;--ink:#2d2926;--muted:#746b64;--primary:#7a4f35;--dark:#5f3925;--border:#e6d8c9;--yes:#2e6a35;--no:#8f3232;--shadow:0 18px 45px rgba(80,52,34,.12)}
+    *{box-sizing:border-box} body{margin:0;min-height:100vh;font-family:Inter,system-ui,sans-serif;color:var(--ink);background:radial-gradient(circle at top left,rgba(217,179,130,.38),transparent 30%),linear-gradient(135deg,#f9f4ec,#efe3d5)}
+    button,input,select{font:inherit}.hidden{display:none!important}.app{width:min(1100px,calc(100% - 28px));margin:26px auto}
+    .hero{background:linear-gradient(135deg,rgba(122,79,53,.97),rgba(76,43,27,.96));color:#fff;border-radius:26px;padding:30px;box-shadow:var(--shadow)}
+    .hero h1{margin:0 0 7px;font-size:clamp(2rem,5vw,3.2rem)}.hero p{margin:0;color:#ffffffd0;line-height:1.55}
+    .panel,.login-card{background:#fffdf8f2;border:1px solid var(--border);border-radius:24px;padding:24px;box-shadow:var(--shadow)}
+    .login-screen{min-height:100vh;display:grid;place-items:center;padding:22px}.login-card{width:min(450px,100%);text-align:center}.login-card label{text-align:left;margin-top:20px}.login-icon{font-size:58px}
+    label{display:grid;gap:7px;font-weight:800;color:var(--dark)} input,select{width:100%;border:1px solid var(--border);border-radius:13px;padding:12px 13px;background:#fff;color:var(--ink);outline:none} input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 4px #7a4f351c}
+    .btn{border:0;border-radius:13px;padding:11px 16px;cursor:pointer;font-weight:900}.primary{background:var(--primary);color:#fff}.secondary{background:#ece3da;color:var(--dark)}.danger{background:#f6dede;color:var(--no)}
+    .login-btn{width:100%;margin-top:15px}.userbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:16px 0;padding:13px 15px;background:#fffdf8e8;border:1px solid var(--border);border-radius:16px}
+    .nav{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.nav button.active{background:var(--primary);color:#fff}.nav button{background:#fff;color:var(--dark);box-shadow:0 5px 14px #50342212}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr 210px;gap:14px}.rating-section{margin-top:16px} fieldset{border:1px solid var(--border);border-radius:15px;background:#fff;padding:14px}legend{font-weight:900;color:var(--dark)}
+    .star-rating{display:inline-flex;flex-direction:row-reverse;justify-content:flex-end;gap:4px;margin-top:6px}
+    .star-rating input{position:absolute;opacity:0;pointer-events:none}
+    .star-rating label{font-size:2.35rem;line-height:1;color:#d8cfc6;cursor:pointer;transition:.15s ease}
+    .star-rating label:hover,.star-rating label:hover~label,.star-rating input:checked~label{color:#d79a2b;transform:translateY(-1px)}.actions,.filter-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}.error{background:#f6dede;color:var(--no);padding:10px 12px;border-radius:11px;font-weight:800}.success{background:#dff0df;color:var(--yes);padding:10px 12px;border-radius:11px;font-weight:800}
+    .filters{display:grid;grid-template-columns:1.4fr repeat(3,.8fr);gap:12px;margin-bottom:14px}.stats{margin-left:auto;background:#f2e6d8;color:var(--dark);border-radius:12px;padding:9px 12px;font-weight:900}
+    .list{display:grid;gap:13px}.book{display:grid;grid-template-columns:1fr auto;gap:15px;align-items:center;background:#fff;border:1px solid var(--border);border-radius:17px;padding:17px}.book h3{margin:0 0 5px}.book p{margin:3px 0;color:var(--muted)}
+    .badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.badge{padding:5px 9px;border-radius:999px;font-size:.86rem;font-weight:900}.yes{background:#dff0df;color:var(--yes)}.no{background:#f6dede;color:var(--no)}
+    .book-actions{display:flex;gap:7px}.empty{text-align:center;padding:36px 18px;border:2px dashed var(--border);border-radius:17px;color:var(--muted)}
+    .recommend-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}.recommend-card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:18px}.recommend-card h3{margin:0 0 4px}.score{font-size:2rem;font-weight:950;color:var(--primary);margin:12px 0 3px}.progress{height:9px;background:#eee3d8;border-radius:999px;overflow:hidden}.progress span{display:block;height:100%;background:var(--primary)}
+    .small{font-size:.9rem;color:var(--muted)}.loading{text-align:center;padding:30px;color:var(--muted)}
+    @media(max-width:800px){.form-grid,.filters{grid-template-columns:1fr}.book{grid-template-columns:1fr}.userbar{align-items:stretch;flex-direction:column}.stats{margin-left:0}.book-actions{flex-wrap:wrap}}
+  </style>
+</head>
+<body>
+<section id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="login-icon">📚</div>
+    <h1>Tu biblioteca</h1>
+    <p>Entra con un nombre. Cada nombre conserva su propia lista en este dispositivo.</p>
+    <form id="loginForm">
+      <label>Nombre<input id="username" maxlength="40" placeholder="MARÍA" required></label>
+      <button class="btn primary login-btn">Entrar</button>
+    </form>
+  </div>
+</section>
+
+<main id="app" class="app hidden">
+  <section class="hero"><h1>Biblioteca compartida</h1><p>Registra tus lecturas y descubre los libros más recomendados por todos.</p></section>
+  <div class="userbar"><div><small>Biblioteca de</small><br><strong id="currentUser"></strong><div id="syncStatus" class="small"></div></div><button id="changeUser" class="btn secondary">Cambiar usuario</button></div>
+  <nav class="nav">
+    <button class="btn active" data-view="add">➕ Añadir libro</button>
+    <button class="btn" data-view="read">📚 Libros leídos</button>
+    <button class="btn" data-view="recommend">⭐ Recomendaciones</button>
+  </nav>
+
+  <section id="addView" class="panel">
+    <h2 id="formHeading">Añadir libro leído</h2>
+    <form id="bookForm">
+      <div class="form-grid">
+        <label>Título<input id="title" maxlength="140" required></label>
+        <label>Autor<input id="author" maxlength="100" required></label>
+        <label>Fecha de lectura<input id="readDate" type="date" required></label>
+      </div>
+      <div class="rating-section">
+        <fieldset>
+          <legend>¿Cuánto te gustó el libro?</legend>
+          <div class="star-rating" aria-label="Valoración de 1 a 5 estrellas">
+            <input type="radio" id="star5" name="rating" value="5" required><label for="star5" title="5 estrellas">★</label>
+            <input type="radio" id="star4" name="rating" value="4"><label for="star4" title="4 estrellas">★</label>
+            <input type="radio" id="star3" name="rating" value="3"><label for="star3" title="3 estrellas">★</label>
+            <input type="radio" id="star2" name="rating" value="2"><label for="star2" title="2 estrellas">★</label>
+            <input type="radio" id="star1" name="rating" value="1"><label for="star1" title="1 estrella">★</label>
+          </div>
+          <p class="small">Con 5 estrellas, el libro se marcará automáticamente como recomendado.</p>
+        </fieldset>
+      </div>
+      <div class="actions"><button class="btn primary" id="saveButton">Guardar libro</button><button type="button" id="cancelEdit" class="btn secondary hidden">Cancelar</button></div>
+      <p id="formMessage" class="hidden"></p>
+    </form>
+  </section>
+
+  <section id="readView" class="panel hidden">
+    <div class="filters">
+      <label>Buscar<input id="search" placeholder="Título o autor"></label>
+      <label>Desde<input id="dateFrom" type="date"></label>
+      <label>Hasta<input id="dateTo" type="date"></label>
+      <label>Recomendación<select id="filterRecommended"><option value="all">Todos</option><option value="Sí">Recomendaría</option><option value="No">No recomendaría</option></select></label>
+    </div>
+    <div class="filter-actions"><button id="clearFilters" class="btn secondary">Limpiar filtros</button><div id="stats" class="stats"></div></div>
+    <div id="bookList" class="list"></div>
+  </section>
+
+  <section id="recommendView" class="panel hidden">
+    <div class="filter-actions">
+      <div><h2 style="margin:0">Mejor valorados por los lectores</h2><p class="small">Ordenados por porcentaje de recomendaciones y número de valoraciones.</p></div>
+      <button id="refreshRecommendations" class="btn secondary">Actualizar</button>
+    </div>
+    <label style="max-width:480px;margin-bottom:18px">Buscar una recomendación<input id="recommendSearch" placeholder="Título o autor"></label>
+    <div id="recommendations" class="recommend-grid"></div>
+  </section>
+</main>
+
+<script>
+const PREFIX="biblioteca_usuario_v2_";
+const LAST_USER="biblioteca_ultimo_usuario_v2";
+let user="", books=[], editingId=null;
+
+const $=id=>document.getElementById(id);
+const loginScreen=$("loginScreen"), app=$("app"), loginForm=$("loginForm"), username=$("username"), currentUser=$("currentUser");
+const form=$("bookForm"), title=$("title"), author=$("author"), readDate=$("readDate"), formMessage=$("formMessage");
+const views={add:$("addView"),read:$("readView"),recommend:$("recommendView")};
+
+function normalizeText(v){return v.trim().replace(/\s+/g," ").toLocaleUpperCase("es-ES")}
+function createId(){
+  if(window.crypto && typeof window.crypto.randomUUID==="function") return window.crypto.randomUUID();
+  return "book-"+Date.now()+"-"+Math.random().toString(16).slice(2);
+}
+function userKey(){return PREFIX+encodeURIComponent(user)}
+function loadLocal(){try{return JSON.parse(localStorage.getItem(userKey()))||[]}catch{return []}}
+function saveLocal(){localStorage.setItem(userKey(),JSON.stringify(books))}
+function setSyncStatus(text){$("syncStatus").textContent=text||""}
+async function loadRemoteBooks(){
+  setSyncStatus("Sincronizando…");
+  try{
+    const response=await fetch(`/api/library?user=${encodeURIComponent(user)}`,{cache:"no-store"});
+    if(!response.ok)throw new Error("No se pudo cargar");
+    const data=await response.json();
+    books=Array.isArray(data.books)?data.books:[];
+    saveLocal();
+    setSyncStatus("Biblioteca sincronizada");
+  }catch{
+    books=loadLocal();
+    setSyncStatus("Sin conexión: mostrando copia de este dispositivo");
+  }
+}
+async function saveRemoteBooks(){
+  saveLocal();
+  setSyncStatus("Guardando…");
+  const response=await fetch("/api/library",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({user,books})
+  });
+  if(!response.ok)throw new Error("No se pudo sincronizar");
+  setSyncStatus("Cambios guardados");
+}
+function escapeHtml(v){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
+function formatDate(v){return new Intl.DateTimeFormat("es-ES",{day:"2-digit",month:"long",year:"numeric"}).format(new Date(v+"T12:00:00"))}
+function message(text,type="error"){formMessage.textContent=text;formMessage.className=type}
+function clearMessage(){formMessage.textContent="";formMessage.className="hidden"}
+
+async function enter(name){
+  user=normalizeText(name); localStorage.setItem(LAST_USER,user);
+  currentUser.textContent=user; loginScreen.classList.add("hidden"); app.classList.remove("hidden");
+  resetForm();
+  await loadRemoteBooks();
+  showView("read");
+  renderBooks();
+}
+loginForm.addEventListener("submit",e=>{e.preventDefault();if(normalizeText(username.value))void enter(username.value)});
+username.addEventListener("input",()=>username.value=username.value.toLocaleUpperCase("es-ES"));
+$("changeUser").addEventListener("click",()=>{user="";books=[];app.classList.add("hidden");loginScreen.classList.remove("hidden");username.value="";username.focus()});
+
+function showView(name){
+  Object.entries(views).forEach(([key,el])=>el.classList.toggle("hidden",key!==name));
+  document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===name));
+  if(name==="read")renderBooks();
+  if(name==="recommend")loadRecommendations();
+}
+document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
+
+function resetForm(){
+  editingId=null;form.reset();readDate.value=new Date().toISOString().slice(0,10);
+  $("formHeading").textContent="Añadir libro leído";$("saveButton").textContent="Guardar libro";$("cancelEdit").classList.add("hidden");clearMessage();
+}
+title.addEventListener("input",()=>{title.value=title.value.toLocaleUpperCase("es-ES");clearMessage()});
+$("cancelEdit").addEventListener("click",resetForm);
+
+async function publishReview(book){
+  const response=await fetch("/api/reviews",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user,title:book.title,author:book.author,rating:book.rating,recommended:book.recommended,readDate:book.readDate})});
+  if(!response.ok) throw new Error("No se pudo publicar la valoración");
+}
+
+form.addEventListener("submit",async e=>{
+  e.preventDefault();clearMessage();
+  const rating=Number(form.querySelector('[name="rating"]:checked')?.value);
+  const item={id:editingId||createId(),title:normalizeText(title.value),author:author.value.trim(),readDate:readDate.value,rating,recommended:rating===5?"Sí":"No"};
+  const duplicate=books.some(b=>normalizeText(b.title)===item.title&&b.id!==editingId);
+  if(duplicate){message(`El libro "${item.title}" ya está guardado.`);return}
+  if(editingId)books=books.map(b=>b.id===editingId?item:b);else books.push(item);
+  saveLocal();
+  resetForm();
+  showView("read");
+  renderBooks();
+  try{
+    await saveRemoteBooks();
+  }catch{
+    alert("El libro se guardó en este dispositivo, pero no se pudo sincronizar con Netlify. Inténtalo de nuevo con conexión.");
+  }
+  try{
+    await publishReview(item);
+  }catch{
+    alert("El libro está guardado, pero la valoración pública no se pudo compartir.");
+  }
+});
+
+function renderBooks(){
+  const q=$("search").value.trim().toLocaleUpperCase("es-ES"),from=$("dateFrom").value,to=$("dateTo").value,rec=$("filterRecommended").value;
+  const shown=[...books].filter(b=>(normalizeText(b.title).includes(q)||normalizeText(b.author).includes(q))&&(!from||b.readDate>=from)&&(!to||b.readDate<=to)&&(rec==="all"||b.recommended===rec)).sort((a,b)=>b.readDate.localeCompare(a.readDate));
+  $("stats").textContent=shown.length===books.length?`${books.length} libros leídos`:`${shown.length} de ${books.length} libros`;
+  $("bookList").innerHTML=shown.length?shown.map(b=>`<article class="book"><div><h3>${escapeHtml(b.title)}</h3><p><strong>Autor:</strong> ${escapeHtml(b.author)}</p><p><strong>Fecha:</strong> ${formatDate(b.readDate)}</p><div class="badges"><span class="badge yes">⭐ ${b.rating || 0}/5</span><span class="badge ${b.recommended==="Sí"?"yes":"no"}">${b.recommended==="Sí"?"✅ Recomendado":"➖ No recomendado"}</span></div></div><div class="book-actions"><button class="btn secondary" onclick="editBook('${b.id}')">Editar</button><button class="btn danger" onclick="deleteBook('${b.id}')">Borrar</button></div></article>`).join(""):`<div class="empty">No hay libros que coincidan.</div>`;
+}
+window.editBook=id=>{const b=books.find(x=>x.id===id);if(!b)return;editingId=id;title.value=b.title;author.value=b.author;readDate.value=b.readDate;const ratingOption=form.querySelector(`[name="rating"][value="${b.rating || 1}"]`);if(ratingOption)ratingOption.checked=true;$("formHeading").textContent="Editar libro";$("saveButton").textContent="Guardar cambios";$("cancelEdit").classList.remove("hidden");showView("add")};
+window.deleteBook=async id=>{const b=books.find(x=>x.id===id);if(b&&confirm(`¿Borrar "${b.title}"?`)){books=books.filter(x=>x.id!==id);saveLocal();renderBooks();try{await saveRemoteBooks()}catch{alert("Se borró en este dispositivo, pero no se pudo sincronizar el cambio.")}}};
+["search","dateFrom","dateTo","filterRecommended"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",renderBooks));
+$("clearFilters").addEventListener("click",()=>{$("search").value="";$("dateFrom").value="";$("dateTo").value="";$("filterRecommended").value="all";renderBooks()});
+
+let recommendationData=[];
+async function loadRecommendations(){
+  $("recommendations").innerHTML='<div class="loading">Cargando recomendaciones…</div>';
+  try{
+    const r=await fetch("/api/recommendations"); if(!r.ok)throw new Error();
+    recommendationData=await r.json();renderRecommendations();
+  }catch{$("recommendations").innerHTML='<div class="empty">No se pudieron cargar las recomendaciones. Esta función estará disponible cuando subas el proyecto completo a Netlify.</div>'}
+}
+function renderRecommendations(){
+  const q=normalizeText($("recommendSearch").value);
+  const data=recommendationData.filter(x=>normalizeText(x.title).includes(q)||normalizeText(x.author).includes(q));
+  $("recommendations").innerHTML=data.length?data.map((x,i)=>`<article class="recommend-card"><div class="small">#${i+1} · ${x.total} ${x.total===1?"valoración":"valoraciones"}</div><h3>${escapeHtml(x.title)}</h3><div class="small">${escapeHtml(x.author)}</div><div class="score">${x.recommendPercent}%</div><div class="progress"><span style="width:${x.recommendPercent}%"></span></div><p><strong>${x.recommendedYes}</strong> lo recomendarían · valoración media <strong>${x.averageRating}/5</strong></p></article>`).join(""):'<div class="empty">No se encontraron recomendaciones.</div>';
+}
+$("recommendSearch").addEventListener("input",renderRecommendations);
+$("refreshRecommendations").addEventListener("click",loadRecommendations);
+
+const last=localStorage.getItem(LAST_USER);if(last)void enter(last);else{readDate.value=new Date().toISOString().slice(0,10);username.focus()}
+</script>
+</body>
+</html>
