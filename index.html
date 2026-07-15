@@ -110,6 +110,10 @@ const form=$("bookForm"), title=$("title"), author=$("author"), readDate=$("read
 const views={add:$("addView"),read:$("readView"),recommend:$("recommendView")};
 
 function normalizeText(v){return v.trim().replace(/\s+/g," ").toLocaleUpperCase("es-ES")}
+function createId(){
+  if(window.crypto && typeof window.crypto.randomUUID==="function") return window.crypto.randomUUID();
+  return "book-"+Date.now()+"-"+Math.random().toString(16).slice(2);
+}
 function userKey(){return PREFIX+encodeURIComponent(user)}
 function loadLocal(){try{return JSON.parse(localStorage.getItem(userKey()))||[]}catch{return []}}
 function saveLocal(){localStorage.setItem(userKey(),JSON.stringify(books))}
@@ -150,13 +154,18 @@ async function publishReview(book){
 form.addEventListener("submit",async e=>{
   e.preventDefault();clearMessage();
   const rating=Number(form.querySelector('[name="rating"]:checked')?.value);
-  const item={id:editingId||crypto.randomUUID(),title:normalizeText(title.value),author:author.value.trim(),readDate:readDate.value,rating,recommended:rating===5?"Sí":"No"};
+  const item={id:editingId||createId(),title:normalizeText(title.value),author:author.value.trim(),readDate:readDate.value,rating,recommended:rating===5?"Sí":"No"};
   const duplicate=books.some(b=>normalizeText(b.title)===item.title&&b.id!==editingId);
   if(duplicate){message(`El libro "${item.title}" ya está guardado.`);return}
   if(editingId)books=books.map(b=>b.id===editingId?item:b);else books.push(item);
   saveLocal();
-  try{await publishReview(item);resetForm();showView("read")}
-  catch{message("El libro se guardó en tu teléfono, pero no se pudo compartir la valoración. Comprueba que la web esté desplegada en Netlify.","error");}
+  resetForm();
+  showView("read");
+  try{
+    await publishReview(item);
+  }catch{
+    alert("El libro se ha guardado en tu biblioteca, pero la valoración no se pudo compartir con los demás usuarios.");
+  }
 });
 
 function renderBooks(){
